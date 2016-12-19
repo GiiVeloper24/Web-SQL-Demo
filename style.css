@@ -1,0 +1,11 @@
+input{
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+#result{
+	display: block;
+	background: #333;
+	padding:5px;
+	color: white;
+}

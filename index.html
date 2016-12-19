@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<h1>WEB SQL Sample</h1>
+	<label for="name">
+		Full Name: 
+		<input name="name" id="name" type="text"><br>
+	</label>
+	<label for="course">
+		Course: 
+		<input id="course" type="text"><br>
+	</label>
+	<br>
+	<button onclick="add_student()">Add</button>
+	<button onclick="delete_student()">Delete</button>
+	<button onclick="select_students()">Show Data</button>
+	<p id="result"></p>
+
+	<script type="text/javascript">
+		var db;
+		var fullnameElem;
+		var courseElem;
+		var resultElem;
+
+		function add_student(){
+			db.transaction(function(tx){
+				tx.executeSql("INSERT INTO students(name,course) VALUES(?,?)",
+					[fullnameElem.value,courseElem.value], function(tx,rs){
+						resultElem.innerHTML = "number of rows inserted : " + rs.rowsAffected + ", id of new row : " + rs.insertId;
+					})
+			})
+		}
+
+		function delete_student(){
+			db.transaction(function(tx){
+				tx.executeSql("DELETE FROM students where name = ? OR course = ?",[fullnameElem.value,courseElem.value],function(tx,rs){
+						resultElem.innerHTML = "number of rows deleted : " + rs.rowsAffected;
+				});
+			})
+		}
+
+		function select_students(){
+			db.transaction(function(tx){
+				tx.executeSql("SELECT * FROM students",[],function(tx,rs){
+					resultElem.innerHTML = "There are " + rs.rows.length + " student in database";
+
+					var elem = document.createElement("ul");
+					document.body.appendChild(elem);
+					elem.innerHTML = "";
+					for(var i=0; i<rs.rows.length; i++){
+						elem.innerHTML += "<li>"+ rs.rows[i].id + ", " + rs.rows[i].name +", "+ rs.rows[i].course +"</li>";
+					}
+
+				})
+			})
+		}
+
+		function onLoad(event){
+			fullnameElem = document.getElementById("name");
+			courseElem = document.getElementById("course");
+			resultElem = document.getElementById("result");
+
+			//test if browser support web sql
+			if(window.openDatabase){
+				resultElem.innerHTML = "Your browser support Web SQL";
+
+				//open database function paramerters
+				// - db name
+				// - db version
+				// - db description
+				// - estimated size of db
+				db = openDatabase('testdb','1.0','Testing web sql',1024*1000);
+
+				db.transaction(function(tx){
+					tx.executeSql("CREATE TABLE IF NOT EXISTS students(id INTEGER PRIMARY KEY,name TEXT,course TEXT)",[]);
+				})
+
+				select_students();
+			}
+		}
+
+		window.addEventListener("load",onLoad,true);
+	</script>
+</body>
+</html>
